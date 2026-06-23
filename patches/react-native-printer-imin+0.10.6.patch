@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native-printer-imin/android/src/main/java/com/printerimin/PrinterIminModule.java b/node_modules/react-native-printer-imin/android/src/main/java/com/printerimin/PrinterIminModule.java
+index cd46a94..c1e8944 100644
+--- a/node_modules/react-native-printer-imin/android/src/main/java/com/printerimin/PrinterIminModule.java
++++ b/node_modules/react-native-printer-imin/android/src/main/java/com/printerimin/PrinterIminModule.java
+@@ -2035,7 +2035,12 @@ public class PrinterIminModule extends ReactContextBaseJavaModule {
+     mBroadcastReceiver = createChargingStateBroadcastReceiver();
+     intentFilter.addAction(ACTION_PRITER_STATUS_CHANGE);
+     intentFilter.addAction(ACTION_POGOPIN_STATUS_CHANGE);
+-    getReactApplicationContext().registerReceiver(mBroadcastReceiver, intentFilter);
++    // Android 13+ (API 33) requires an explicit export flag for non-system receivers.
++    if (android.os.Build.VERSION.SDK_INT >= 33) {
++      getReactApplicationContext().registerReceiver(mBroadcastReceiver, intentFilter, android.content.Context.RECEIVER_NOT_EXPORTED);
++    } else {
++      getReactApplicationContext().registerReceiver(mBroadcastReceiver, intentFilter);
++    }
+   }
+ 
+   @ReactMethod
