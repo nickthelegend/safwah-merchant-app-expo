@@ -52,16 +52,18 @@ describe('NFCService', () => {
       expect(nfcService.isCurrentlyScanning()).toBe(true);
     });
 
-    it('should fail if scanning already in progress', async () => {
+    it('should restart cleanly if scanning is already in progress', async () => {
       await nfcService.initialize();
       await nfcService.startScanning(100);
-      
-      // Try to start scanning again while already scanning
+
+      // Re-tapping "scan" while a session is live should stop the old one and
+      // start fresh with the new amount — not error out on the merchant.
       const result = await nfcService.startScanning(200);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('already in progress');
-      
+      expect(result.success).toBe(true);
+      expect(result.error).toBeUndefined();
+      expect(nfcService.isCurrentlyScanning()).toBe(true);
+
       // Clean up
       await nfcService.stopScanning();
     });
@@ -99,10 +101,10 @@ describe('NFCService', () => {
       expect(result.data?.amount).toBe(150);
       expect(result.data?.paymentMethod).toBe(PaymentMethod.NFC);
       expect(result.data?.timestamp).toBeInstanceOf(Date);
-      
-      // Verify mock delay was applied (should be ~2000ms)
+
+      // Processing is instant by design (auto-complete on tap) — no artificial delay.
       const duration = endTime - startTime;
-      expect(duration).toBeGreaterThanOrEqual(1900); // Allow small variance
+      expect(duration).toBeLessThan(500);
     });
 
     it('should fail with invalid NFC data', async () => {

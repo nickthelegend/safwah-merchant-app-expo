@@ -202,6 +202,15 @@ class NFCService {
    */
   async processNFCPayment(nfcData: any): Promise<PaymentServiceResult> {
     try {
+      // Guard: a null/undefined payload means the tag read failed — never treat an
+      // absent read as a successful payment, even in auto-complete/demo mode.
+      if (nfcData === null || nfcData === undefined) {
+        return {
+          success: false,
+          error: 'Invalid NFC data',
+        };
+      }
+
       // DEBUG: Log all NFC data in detail
       console.log('═══════════════════════════════════════');
       console.log('🔍 NFC DATA RECEIVED IN PAYMENT PROCESSOR:');
