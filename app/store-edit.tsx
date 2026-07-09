@@ -3,10 +3,14 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { keccak256, toHex } from 'viem';
 
 import { safwah } from '../theme/safwah';
 import { useSettlement } from '../stores/settlementStore';
 import { useToast } from '../components/safwah/Toast';
+import { useTx } from '../provider/TxProvider';
+import { useMerchantOnchain } from '../hooks/useMerchantOnchain';
+import { CONTRACTS } from '../lib/contracts';
 
 const FIELDS = [
   { key: 'name', label: 'Business name', icon: 'storefront-outline', placeholder: 'Spice Route Café' },
@@ -20,15 +24,39 @@ export default function StoreEdit() {
   const insets = useSafeAreaInsets();
   const { business, setBusiness } = useSettlement();
   const { toast } = useToast();
+  const { run } = useTx();
+  const { isConnected, active, refetch } = useMerchantOnchain();
   const [form, setForm] = useState({ ...business });
 
-  const save = () => {
-    setBusiness({
-      name: form.name.trim() || business.name,
-      category: form.category.trim() || business.category,
-      emirate: form.emirate.trim() || business.emirate,
-      iban: form.iban.trim() || business.iban,
-    });
+  const save = async () => {
+    const name = form.name.trim() || business.name;
+    const category = form.category.trim() || business.category;
+    const emirate = form.emirate.trim() || business.emirate;
+    const iban = form.iban.trim() || business.iban;
+
+    setBusiness({ name, category, emirate, iban });
+
+    // Register the merchant on-chain (MerchantRegistry) the first time, using the
+    // entered name + IBAN. The TxProvider modal shows signing → pending → success.
+    if (isConnected && !active) {
+      const bankAccountHash = keccak256(toHex(iban && iban.trim() ? iban.trim() : 'SAFWAH-DEMO-IBAN'));
+      const tradeLicense = `SAFWAH-${name.replace(/\s+/g, '-').toUpperCase()}`;
+      try {
+        await run(
+          {
+            address: CONTRACTS.MerchantRegistry.address,
+            abi: CONTRACTS.MerchantRegistry.abi,
+            functionName: 'registerMerchant',
+            args: [name, tradeLicense, bankAccountHash],
+          },
+          { label: 'Registering' },
+        );
+        refetch();
+      } catch {
+        // Error is surfaced by the TxStatusModal; keep the local save so UX isn't lost.
+      }
+    }
+
     router.back();
     toast({ title: 'Store updated', description: 'Your store details were saved', variant: 'success' });
   };
@@ -78,9 +106,9 @@ export default function StoreEdit() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#08080a' },
+  root: { flex: 1, backgroundColor: '#ffffff' },
   header: { alignItems: 'center', marginBottom: 18, paddingHorizontal: 20 },
-  grab: { width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.18)', marginBottom: 14 },
+  grab: { width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(19,19,22,0.12)', marginBottom: 14 },
   title: { fontFamily: safwah.font.bold, fontSize: 19, color: safwah.colors.text },
   close: { position: 'absolute', right: 20, top: 14, width: 34, height: 34, borderRadius: 17, backgroundColor: safwah.colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: safwah.colors.border },
 

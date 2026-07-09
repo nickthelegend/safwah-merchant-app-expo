@@ -4,10 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAccount } from 'wagmi';
+import { useAppKit } from '@reown/appkit-react-native';
 
 import { safwah } from '../theme/safwah';
 import { fmt, shortAddr } from '../lib/fmt';
 import { isToday, useSettlement, vatOf, weeklyRevenue } from '../stores/settlementStore';
+import { useMerchantOnchain } from '../hooks/useMerchantOnchain';
 import { ChartContainer } from '../components/charts/ChartContainer';
 import { LineChart } from '../components/charts/LineChart';
 
@@ -15,7 +17,10 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isConnected, address } = useAccount();
-  const { business, available, sales } = useSettlement();
+  const { open } = useAppKit();
+  const oc = useMerchantOnchain();
+  const { business, available: storeAvailable, sales } = useSettlement();
+  const available = oc.isConnected ? oc.aed : storeAvailable;
 
   const today = sales.filter((s) => isToday(s.ts));
   const todayRevenue = today.reduce((s, t) => s + t.amountAED, 0);
@@ -39,10 +44,10 @@ export default function Home() {
               <Text style={styles.bizChipText}>merchant</Text>
             </View>
           </View>
-          <View style={styles.walletPill}>
+          <TouchableOpacity style={styles.walletPill} activeOpacity={0.8} onPress={() => open()}>
             <View style={[styles.dot, { backgroundColor: isConnected ? safwah.colors.emerald : safwah.colors.textMute }]} />
-            <Text style={styles.walletText}>{isConnected ? shortAddr(address) : 'Settlement'}</Text>
-          </View>
+            <Text style={styles.walletText}>{isConnected ? shortAddr(address) : 'Connect'}</Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.greeting}>{greet},</Text>
@@ -54,7 +59,7 @@ export default function Home() {
             <Text style={styles.heroLabel}>Available to settle</Text>
             <View style={styles.livePill}>
               <View style={styles.liveDot} />
-              <Text style={styles.liveText}>Live</Text>
+              <Text style={styles.liveText}>{oc.isConnected ? 'On-chain' : 'Demo'}</Text>
             </View>
           </View>
           <View style={styles.amountRow}>

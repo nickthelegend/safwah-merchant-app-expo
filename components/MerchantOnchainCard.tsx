@@ -118,7 +118,7 @@ export function MerchantOnchainCard() {
         autoCapitalize="characters"
       />
       <TouchableOpacity style={styles.btn} onPress={register} disabled={submitting} activeOpacity={0.85}>
-        {submitting ? <ActivityIndicator color="#000000" /> : <Text style={styles.btnText}>Register on-chain</Text>}
+        {submitting ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.btnText}>Register on-chain</Text>}
       </TouchableOpacity>
     </Card>
   );
@@ -147,5 +147,5 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
-  btnText: { color: '#000000', fontSize: 16, fontWeight: '700' },
+  btnText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
 });

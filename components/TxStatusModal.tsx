@@ -97,7 +97,7 @@ export function TxStatusModal({ state, onClose }: { state: TxState; onClose: () 
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(19,19,22,0.45)',
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeText: {
-    color: '#000000',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
   },

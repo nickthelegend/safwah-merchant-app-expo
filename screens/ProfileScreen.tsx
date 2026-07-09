@@ -9,6 +9,7 @@ import { useAppKit } from '@reown/appkit-react-native';
 import { safwah } from '../theme/safwah';
 import { fmt, shortAddr } from '../lib/fmt';
 import { useSettlement } from '../stores/settlementStore';
+import { useMerchantOnchain } from '../hooks/useMerchantOnchain';
 import { useSession } from '../provider/SessionProvider';
 import { AlertDialog, useAlertDialog } from '../components/safwah/AlertDialog';
 import { BottomSheet, useBottomSheet } from '../components/safwah/BottomSheet';
@@ -19,6 +20,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { business, available, sales } = useSettlement();
   const { address, isConnected, chain } = useAccount();
+  const { active: onchainActive } = useMerchantOnchain();
   const { disconnect } = useDisconnect();
   const { open } = useAppKit();
   const { exitDemo } = useSession();
@@ -56,10 +58,17 @@ export default function ProfileScreen() {
             <Text style={styles.bizMeta}>{business.emirate}</Text>
           </View>
           <View style={{ alignItems: 'flex-end', gap: 10 }}>
-            <View style={styles.verifyBadge}>
-              <Ionicons name="shield-checkmark" size={12} color={safwah.colors.emerald} />
-              <Text style={styles.verifyText}>PTSR</Text>
-            </View>
+            {isConnected && !onchainActive ? (
+              <View style={[styles.verifyBadge, { backgroundColor: safwah.colors.limeWash }]}>
+                <Ionicons name="add-circle" size={12} color={safwah.colors.lime} />
+                <Text style={[styles.verifyText, { color: safwah.colors.lime }]}>Register</Text>
+              </View>
+            ) : (
+              <View style={styles.verifyBadge}>
+                <Ionicons name="shield-checkmark" size={12} color={safwah.colors.emerald} />
+                <Text style={styles.verifyText}>{isConnected && onchainActive ? 'Active' : 'PTSR'}</Text>
+              </View>
+            )}
             <Ionicons name="create-outline" size={17} color={safwah.colors.textMute} />
           </View>
         </TouchableOpacity>

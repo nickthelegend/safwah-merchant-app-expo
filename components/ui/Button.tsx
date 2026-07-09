@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   primaryText: {
-    color: '#000000',
+    color: '#ffffff',
     fontWeight: '600',
   },
   secondaryText: {
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   gradientText: {
-    color: '#000000',
+    color: '#ffffff',
     fontWeight: '600',
   },
 });

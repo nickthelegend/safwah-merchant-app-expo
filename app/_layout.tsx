@@ -3,7 +3,7 @@ import 'text-encoding';
 import '@walletconnect/react-native-compat';
 import '../polyfills';
 
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -115,20 +115,20 @@ export default function RootLayout() {
   }, [setPrinterStatus]);
 
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: '#000' }} />;
+    return <View style={{ flex: 1, backgroundColor: '#f6f6f7' }} />;
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000' }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#f6f6f7' }}>
       <SafeAreaProvider>
         <Web3Provider>
           <TxProvider>
             <AuthProvider>
               <SessionProvider>
-                <ThemeProvider value={DarkTheme}>
+                <ThemeProvider value={DefaultTheme}>
                   <ToastProvider>
                     <Gate />
-                    <StatusBar style="light" />
+                    <StatusBar style="dark" />
                   </ToastProvider>
                 </ThemeProvider>
               </SessionProvider>

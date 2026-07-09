@@ -27,7 +27,7 @@ export interface Payout {
 }
 
 export const TOKEN_META: Record<PayToken, { name: string; color: string; aed: number }> = {
-  AED: { name: 'Dirham', color: '#CCFF00', aed: 1 },
+  AED: { name: 'Dirham', color: '#131316', aed: 1 },
   USDT: { name: 'Tether USD', color: '#26a17b', aed: AED_PER_USD },
   ETH: { name: 'Ethereum', color: '#8a92b2', aed: AED_PER_USD * 3150 },
 };
@@ -115,6 +115,6 @@ export function weeklyRevenue(sales: Sale[]): { x: string; y: number; label?: st
 /// AED received grouped by the token the customer paid in.
 export function tokenBreakdown(sales: Sale[]): { label: string; value: number; color: string }[] {
   return (['USDT', 'ETH', 'AED'] as PayToken[])
-    .map((t) => ({ label: t, value: +sales.filter((s) => s.token === t).reduce((a, s) => a + s.amountAED, 0).toFixed(2), color: TOKEN_META[t].color === '#CCFF00' ? '#CCFF00' : TOKEN_META[t].color }))
+    .map((t) => ({ label: t, value: +sales.filter((s) => s.token === t).reduce((a, s) => a + s.amountAED, 0).toFixed(2), color: TOKEN_META[t].color === '#131316' ? '#131316' : TOKEN_META[t].color }))
     .filter((d) => d.value > 0);
 }

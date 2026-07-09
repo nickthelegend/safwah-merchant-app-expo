@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppKit } from '@reown/appkit-react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 import { safwah } from '../theme/safwah';
 import { fmt } from '../lib/fmt';
 import { PayToken, TOKEN_META, useSettlement, vatOf } from '../stores/settlementStore';
 import { useToast } from '../components/safwah/Toast';
+import { useMerchantOnchain } from '../hooks/useMerchantOnchain';
 
 const TOKENS: PayToken[] = ['USDT', 'ETH', 'AED'];
 type Stage = 'entry' | 'qr' | 'done';
@@ -16,6 +18,8 @@ export default function POSScreen() {
   const insets = useSafeAreaInsets();
   const { business, acceptPayment } = useSettlement();
   const { toast } = useToast();
+  const { open } = useAppKit();
+  const { address, isConnected, aed, refetch } = useMerchantOnchain();
   const [amount, setAmount] = useState('0');
   const [token, setToken] = useState<PayToken>('USDT');
   const [stage, setStage] = useState<Stage>('entry');
@@ -24,6 +28,9 @@ export default function POSScreen() {
   const amt = parseFloat(amount) || 0;
   const tokenAmount = amt / TOKEN_META[token].aed;
   const canCharge = amt > 0;
+
+  // On-chain balance at the moment the QR is shown — we watch for it to rise by ~amt.
+  const baselineAed = useRef<number | null>(null);
 
   const press = (k: string) => {
     setAmount((cur) => {
@@ -35,20 +42,50 @@ export default function POSScreen() {
     });
   };
 
-  const charge = () => canCharge && setStage('qr');
-  const markPaid = () => {
+  // Records the sale locally + shows the success screen. Called either when we detect
+  // the on-chain AED balance rise, or when the merchant taps "Mark as paid".
+  const settle = () => {
+    if (stage === 'done') return;
     acceptPayment(amt, token, token === 'AED' ? 'Walk-in · cash' : 'Tourist · scan');
     setReceived(amt);
     setStage('done');
     toast({ title: 'Payment received', description: `AED ${fmt(amt)} settled to your balance`, variant: 'success' });
   };
+
+  const charge = () => {
+    if (!canCharge) return;
+    if (!isConnected) { open(); return; } // connect payout wallet first
+    baselineAed.current = aed; // snapshot before showing the QR
+    setStage('qr');
+  };
+  const markPaid = () => settle();
   const reset = () => {
+    baselineAed.current = null;
     setAmount('0');
     setToken('USDT');
     setStage('entry');
   };
 
-  const payUri = `safwah://pay?to=${encodeURIComponent(business.name)}&amountAED=${amt.toFixed(2)}&token=${token}&tokenAmount=${tokenAmount.toFixed(token === 'ETH' ? 5 : 2)}`;
+  // While the QR is on screen, poll the merchant's on-chain AED balance. When it rises
+  // by ~the charged amount, the customer's payment landed → auto-advance to success.
+  useEffect(() => {
+    if (stage !== 'qr') return;
+    const id = setInterval(() => {
+      refetch();
+      if (baselineAed.current != null && aed >= baselineAed.current + amt - 0.01) {
+        clearInterval(id);
+        settle();
+      }
+    }, 6000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, aed, amt]);
+
+  // Universal pay-link the SAFWAH consumer app opens: pays `amt` AED to this merchant.
+  // Falls back to the demo scheme only when no payout wallet is connected yet.
+  const payUri = address
+    ? `https://safwah.ae/pay?to=${address}&amt=${amt.toFixed(2)}`
+    : `safwah://pay?to=${encodeURIComponent(business.name)}&amountAED=${amt.toFixed(2)}&token=${token}&tokenAmount=${tokenAmount.toFixed(token === 'ETH' ? 5 : 2)}`;
 
   // ---- DONE ----
   if (stage === 'done') {
@@ -95,14 +132,14 @@ export default function POSScreen() {
 
           <View style={styles.qrHint}>
             <Ionicons name="phone-portrait-outline" size={16} color={safwah.colors.textDim} />
-            <Text style={styles.qrHintText}>Customer scans with the SAFWAH app · pays in {token}, you receive AED</Text>
+            <Text style={styles.qrHintText}>Customer scans with the SAFWAH app · pays in {token}, you receive AED. Waiting for on-chain settlement…</Text>
           </View>
 
           <TouchableOpacity style={styles.markBtn} onPress={markPaid} activeOpacity={0.9}>
             <Ionicons name="checkmark-circle" size={19} color={safwah.colors.onLime} />
             <Text style={styles.markBtnText}>Mark as paid</Text>
           </TouchableOpacity>
-          <Text style={styles.simNote}>Demo: confirms the on-chain payment for you</Text>
+          <Text style={styles.simNote}>Confirms automatically when the payment lands on-chain</Text>
         </ScrollView>
       </View>
     );
@@ -158,9 +195,9 @@ export default function POSScreen() {
 
       <View style={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 100 }}>
         <TouchableOpacity style={[styles.chargeBtn, !canCharge && styles.chargeDisabled]} onPress={charge} disabled={!canCharge} activeOpacity={0.9}>
-          <Ionicons name="qr-code" size={19} color={canCharge ? safwah.colors.onLime : safwah.colors.textMute} />
+          <Ionicons name={canCharge && !isConnected ? 'wallet' : 'qr-code'} size={19} color={canCharge ? safwah.colors.onLime : safwah.colors.textMute} />
           <Text style={[styles.chargeText, !canCharge && { color: safwah.colors.textMute }]}>
-            {canCharge ? `Charge AED ${fmt(amt)}` : 'Enter an amount'}
+            {!canCharge ? 'Enter an amount' : isConnected ? `Charge AED ${fmt(amt)}` : 'Connect wallet to charge'}
           </Text>
         </TouchableOpacity>
       </View>

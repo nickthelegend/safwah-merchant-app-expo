@@ -8,7 +8,7 @@ export default {
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "irionmerchantapp",
-    userInterfaceStyle: "automatic",
+    userInterfaceStyle: "light",
     newArchEnabled: true,
     ios: {
       supportsTablet: true
@@ -27,7 +27,7 @@ export default {
       navigationBar: {
         visible: "immersive",
         barStyle: "dark-content",
-        backgroundColor: "#000000"
+        backgroundColor: "#ffffff"
       }
     },
     web: {

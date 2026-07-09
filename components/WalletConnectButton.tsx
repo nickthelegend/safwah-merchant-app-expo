@@ -41,10 +41,10 @@ export function WalletConnectButton({ style }: { style?: ViewStyle | ViewStyle[]
       disabled={isConnecting}
     >
       {isConnecting ? (
-        <ActivityIndicator color="#000000" size="small" />
+        <ActivityIndicator color="#ffffff" size="small" />
       ) : (
         <>
-          <Ionicons name="wallet-outline" size={18} color="#000000" />
+          <Ionicons name="wallet-outline" size={18} color="#ffffff" />
           <Text style={styles.connectText}>Connect Wallet</Text>
         </>
       )}
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
   },
   connectText: {
-    color: '#000000',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
   },

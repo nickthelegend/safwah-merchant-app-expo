@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: 'rgba(19,19,22,0.12)',
     shadowOffset: {
       width: 0,
       height: 2,
