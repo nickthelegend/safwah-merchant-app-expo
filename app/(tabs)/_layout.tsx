@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 4,
-    borderColor: '#f6f6f7',
+    borderColor: '#F4FAEC',
     shadowColor: safwah.colors.lime,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,

@@ -115,11 +115,11 @@ export default function RootLayout() {
   }, [setPrinterStatus]);
 
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: '#f6f6f7' }} />;
+    return <View style={{ flex: 1, backgroundColor: '#F4FAEC' }} />;
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#f6f6f7' }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#F4FAEC' }}>
       <SafeAreaProvider>
         <Web3Provider>
           <TxProvider>
